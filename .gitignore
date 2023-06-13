@@ -14,9 +14,6 @@ work*
 ## Ignore test subdirectories from mkmodules
 mkmodules/*/test/results/*
 
-## ignore intermediate and logs from tests
-test/data/*/intermediate/
-test/data/*/logs/
 test/results*
 
 ## ignore local R datas
@@ -34,7 +31,6 @@ post-analysis
 
 .nextflow*
 work/
-data/
 results/
 .DS_Store
 testing/
