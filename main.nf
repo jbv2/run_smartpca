@@ -20,10 +20,6 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */ 
 
-params.inputVCF = "test/data/test.vcf.gz"  // Replace with the path to your input VCF file
-params.outdir = "test/results"  // Replace with the desired output directory
-params.samples = "test/reference/samples.txt"  // Replace with the path to the samples file
-params.poplist = "test/reference/individuals_components.poplist"  // Replace with the path to the samples file
 params.r_scripts = "/Users/judith_ballesteros/Documents/Ongoing_projects/run_smartpca/bin/tagger.R"
 
 /*
