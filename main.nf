@@ -20,7 +20,7 @@ nextflow.enable.dsl = 2
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */ 
 
-params.r_scripts = "/Users/judith_ballesteros/Documents/Ongoing_projects/run_smartpca/bin/tagger.R"
+params.r_scripts = "$baseDir/bin/tagger.R"
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
