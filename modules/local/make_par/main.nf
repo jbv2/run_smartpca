@@ -5,6 +5,7 @@ process MAKE_PAR {
     input:
     tuple val(meta), path(famFile)
     file samplesFile
+    file poplistFile
 
     output:
     tuple val(meta), path("*.parfile.txt"),   emit: txt
@@ -25,7 +26,7 @@ process MAKE_PAR {
     echo "indivname: ${prefix}.pedind" >> ${prefix}.parfile.txt
     echo "evecoutname: ${prefix}.evec" >> ${prefix}.parfile.txt
     echo "evaloutname: ${prefix}.eval" >> ${prefix}.parfile.txt 
-    echo "poplistname:  ./individuals_components.poplist" >> ${prefix}.parfile.txt
+    echo "poplistname:  ${poplistFile}" >> ${prefix}.parfile.txt
     echo "lsqproject: YES" >> ${prefix}.parfile.txt
     echo "numoutlieriter: 0" >> ${prefix}.parfile.txt
     echo "shrinkmode: YES" >> ${prefix}.parfile.txt 

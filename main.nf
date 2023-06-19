@@ -63,12 +63,12 @@ workflow {
         .fromPath(params.samples)
         .set { ch_samples }
 
-    ch_parfile = MAKE_PAR(PLINK.out.fam, ch_samples)
-    ch_versions = ch_versions.mix(MAKE_PAR.out.versions)
-
     Channel
         .fromPath(params.poplist)
         .set { ch_poplist }
+
+    ch_parfile = MAKE_PAR(PLINK.out.fam, ch_samples, ch_poplist)
+    ch_versions = ch_versions.mix(MAKE_PAR.out.versions)
 
     SMARTPCA(PLINK.out.bed, PLINK.out.bim, MAKE_PAR.out.pedind, MAKE_PAR.out.txt, ch_poplist)
     ch_versions = ch_versions.mix(SMARTPCA.out.versions)
