@@ -18,7 +18,7 @@ process PLINK {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    plink --vcf ${prefix}.vcf.gz \
+    plink --vcf $vcf \
         --keep-allele-order \
         $args \
         --make-bed \
