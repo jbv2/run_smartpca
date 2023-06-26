@@ -1,6 +1,6 @@
 process PLINK {
     tag "$meta.id"
-    label 'process_low'
+    label 'process_medium'
 
     input:
     tuple val(meta), path(vcf)
@@ -22,6 +22,7 @@ process PLINK {
         --keep-allele-order \
         $args \
         --make-bed \
+        --memory 51498 \
         --out ${prefix} 
 
     cat <<-END_VERSIONS > versions.yml
