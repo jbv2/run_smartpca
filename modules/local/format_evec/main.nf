@@ -18,7 +18,7 @@ process FORMAT_EVEC {
     cat $evec \
     | tr -s " " \
     | tr -d "#" \
-    | sed "s# ##" \
+    | sed "s#^ ##" \
     | sed "s# #\t#g" > tmp
 
     echo "sample PC1 PC2 PC3 PC4 PC5 PC6 PC7 PC8 PC9 PC10 tag" | tr " " "\t" > ${prefix}.formated_evec
