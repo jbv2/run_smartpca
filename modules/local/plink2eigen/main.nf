@@ -30,7 +30,7 @@ process PLINK2EIGEN {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        trident: \$(echo \$(trident --version) | sed 's/^PLINK v//;s/64.*//')
+        trident: \$(echo \$(trident --version ) )
     END_VERSIONS
     """
 }
