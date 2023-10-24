@@ -3,7 +3,7 @@ process BCFTOOLS_REHEADER {
     label 'process_low'
 
     input:
-    tuple val(meta), path(vcf),
+    tuple val(meta), path(vcf)
     path(samples_names)
 
     output:
@@ -34,4 +34,4 @@ process BCFTOOLS_REHEADER {
     END_VERSIONS
     """
 
-    
+}

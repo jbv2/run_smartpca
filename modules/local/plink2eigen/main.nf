@@ -22,9 +22,9 @@ process PLINK2EIGEN {
 
     """
     trident genoconvert \\
-        --genoFile $geno \\
-        --snpFile $snp \\
-        --indFile $ind \\
+        --genoFile $bed \\
+        --snpFile $bim \\
+        --indFile $fam \\
         --inFormat PLINK \\
         --outFormat EIGENSTRAT
 
