@@ -2,10 +2,12 @@
 
 /* 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 'nf-run-smartpca' - A Nextflow pipeline to run smartpca
+ 'run_smartpca' - A Nextflow pipeline to run smartpca from several inputs
+ v0.0.2
+ October 2023
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Judith Ballesteros Villascán
- GitHub: https://github.com/jbv2/run-smartPCA
+ GitHub: https://github.com/jbv2/run_smartpca
  ----------------------------------------------------------------------------------------
  */
 
@@ -13,14 +15,6 @@
  Enable DSL 2 syntax
  */
 nextflow.enable.dsl = 2
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    PARAMETER VALUES
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */ 
-
-params.r_scripts = "$baseDir/bin/tagger.R"
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
