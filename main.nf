@@ -27,12 +27,20 @@ params.r_scripts = "$baseDir/bin/tagger.R"
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { BCFTOOLS_REHEADER } from './modules/local/bcftools/reheader/main'
-include { PLINK       } from './modules/local/plink/main'
-include { PLINK2EIGEN } from './modules/local/plink2eigen/main'
-include { MAKE_PAR    } from './modules/local/make_par/main'
-include { SMARTPCA    } from './modules/local/smartpca/main'
-include { FORMAT_EVEC } from './modules/local/format_evec/main'
+
+// 
+// MODULES: Consisting of local modules
+//
+
+//
+// SUBWORKFLOW: Consisting of local subworkflows
+//
+
+// TODO rename to active: index_reference, filter_bam etc.
+include { VCF2SMARTPCA   } from './subworkflows/local/vcf2smartpca'
+include { PLINK2SMARTPCA } from './subworkflows/local/plink2smartpca'
+include { EIGEN2SMARTPCA } from './subworkflows/local/eigen2smartpca'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -44,12 +52,28 @@ include { FORMAT_EVEC } from './modules/local/format_evec/main'
 // MODULE: Installed directly from nf-core/modules
 //
 
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN WORKFLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 
 workflow {
 
-    ch_versions       = Channel.empty()
+    // Reading poplist according option lsqproject
+    if ( params.poplist ) {
+      ch_poplist = Channel.fromPath(params.poplist, checkIfExists: true )
+        .collect()
+
+    } else {
+      ch_poplist = []
+    }
 
     // Read inputs (VCF) and define name as ID
+
+    if (params.input_type == 'vcf' ) {
+
     ch_vcf = Channel.fromFilePairs(params.inputVCF, size: -1)
         .map {
             meta, vcf ->
@@ -63,30 +87,42 @@ workflow {
         .fromPath(params.samples)
         .set { ch_samples }
 
-    // Change sample names to set FamID before converting to PLINK
-    BCFTOOLS_REHEADER(ch_vcf, ch_samples)
-    ch_renamed_vcf = BCFTOOLS_REHEADER.out.vcf
-    ch_versions = ch_versions.mix(BCFTOOLS_REHEADER.out.versions)
+    VCF2SMARTPCA(ch_vcf, ch_samples, ch_poplist)
+    } else if (params.input_type == 'plink' ) {
 
-    // Convert VCF to PLINK 
-    PLINK(ch_renamed_vcf) 
-    ch_versions = ch_versions.mix(PLINK.out.versions)
+    // Read inputs (PLINK) and define name as ID
+   ch_bed = Channel.fromFilePairs(params.inputbed, size: -1)
+    .map {
+        meta, bed ->
+        def baseName = bed.baseName.first()
+        def dirPath = bed.parent.first()
+        def bimPath = "${dirPath}/${baseName}.bim"
+        def famPath = "${dirPath}/${baseName}.fam"
+        def fmeta = [:]
+        // Set meta.id
+        fmeta.id = baseName
+        [fmeta, bed, file(bimPath), file(famPath)]
+    }
 
-    // Convert PLINK to EIGENSTRAT
-    PLINK2EIGEN(PLINK.out.bed, PLINK.out.bim, PLINK.out.fam)
-    ch_versions = ch_versions.mix(PLINK2EIGEN.out.versions)
+    PLINK2SMARTPCA(ch_bed, ch_poplist)
 
-    // Make PARFILE   
-    Channel
-        .fromPath(params.poplist)
-        .set { ch_poplist }
+    } else if (params.input_type == 'eigenstrat' ) {
 
-    ch_parfile = MAKE_PAR(PLINK2EIGEN.out.geno, PLINK2EIGEN.out.snp, PLINK2EIGEN.out.ind, ch_poplist)
+    // Read inputs (EIGENSTRAT) and define name as ID
+   ch_geno = Channel.fromFilePairs(params.inputgeno, size: -1)
+    .map {
+        meta, geno ->
+        def baseName = geno.baseName.first()
+        def dirPath = geno.parent.first()
+        def snpPath = "${dirPath}/${baseName}.snp"
+        def indPath = "${dirPath}/${baseName}.ind"
+        def fmeta = [:]
+        // Set meta.id
+        fmeta.id = baseName
+        [fmeta, geno, file(snpPath), file(indPath)]
+    }
 
-    // Run SMARTPCA
+    EIGEN2SMARTPCA(ch_geno, ch_poplist)
 
-    SMARTPCA(PLINK2EIGEN.out.geno, PLINK2EIGEN.out.snp, PLINK2EIGEN.out.ind, MAKE_PAR.out.txt, ch_poplist)
-    ch_versions = ch_versions.mix(SMARTPCA.out.versions)
-
-    FORMAT_EVEC(SMARTPCA.out.evec)
+    }
 }
