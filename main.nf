@@ -2,10 +2,12 @@
 
 /* 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- 'nf-run-smartpca' - A Nextflow pipeline to run smartpca
+ 'run_smartpca' - A Nextflow pipeline to run smartpca from several inputs
+ v0.0.2
+ October 2023
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Judith Ballesteros Villascán
- GitHub: https://github.com/jbv2/run-smartPCA
+ GitHub: https://github.com/jbv2/run_smartpca
  ----------------------------------------------------------------------------------------
  */
 
@@ -16,21 +18,23 @@ nextflow.enable.dsl = 2
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    PARAMETER VALUES
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */ 
-
-params.r_scripts = "$baseDir/bin/tagger.R"
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT LOCAL MODULES/SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { PLINK       } from './modules/local/plink/main'
-include { MAKE_PAR    } from './modules/local/make_par/main'
-include { SMARTPCA    } from './modules/local/smartpca/main'
-include { FORMAT_EVEC } from './modules/local/format_evec/main'
+
+// 
+// MODULES: Consisting of local modules
+//
+
+//
+// SUBWORKFLOW: Consisting of local subworkflows
+//
+
+// TODO rename to active: index_reference, filter_bam etc.
+include { VCF2SMARTPCA   } from './subworkflows/local/vcf2smartpca'
+include { PLINK2SMARTPCA } from './subworkflows/local/plink2smartpca'
+include { EIGEN2SMARTPCA } from './subworkflows/local/eigen2smartpca'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -42,12 +46,29 @@ include { FORMAT_EVEC } from './modules/local/format_evec/main'
 // MODULE: Installed directly from nf-core/modules
 //
 
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    RUN WORKFLOW
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
+
 
 workflow {
 
-    ch_versions       = Channel.empty()
+    // Reading poplist according option lsqproject
+    if ( params.poplist ) {
+      ch_poplist = Channel.fromPath(params.poplist, checkIfExists: true )
+        .collect()
 
-    ch_input = Channel.fromFilePairs(params.inputVCF, size: -1)
+    } else {
+      ch_poplist = []
+    }
+
+    // Read inputs (VCF) and define name as ID
+
+    if (params.input_type == 'vcf' ) {
+
+    ch_vcf = Channel.fromFilePairs(params.inputVCF, size: -1)
         .map {
             meta, vcf ->
             def fmeta = [:]
@@ -56,22 +77,46 @@ workflow {
             [ fmeta, vcf ]
         }
 
-    ch_plink = PLINK(ch_input) 
-    ch_versions = ch_versions.mix(PLINK.out.versions)
-
     Channel
         .fromPath(params.samples)
         .set { ch_samples }
 
-    Channel
-        .fromPath(params.poplist)
-        .set { ch_poplist }
+    VCF2SMARTPCA(ch_vcf, ch_samples, ch_poplist)
+    } else if (params.input_type == 'plink' ) {
 
-    ch_parfile = MAKE_PAR(PLINK.out.fam, ch_samples, ch_poplist)
-    ch_versions = ch_versions.mix(MAKE_PAR.out.versions)
+    // Read inputs (PLINK) and define name as ID
+   ch_bed = Channel.fromFilePairs(params.inputbed, size: -1)
+    .map {
+        meta, bed ->
+        def baseName = bed.baseName.first()
+        def dirPath = bed.parent.first()
+        def bimPath = "${dirPath}/${baseName}.bim"
+        def famPath = "${dirPath}/${baseName}.fam"
+        def fmeta = [:]
+        // Set meta.id
+        fmeta.id = baseName
+        [fmeta, bed, file(bimPath), file(famPath)]
+    }
 
-    SMARTPCA(PLINK.out.bed, PLINK.out.bim, MAKE_PAR.out.pedind, MAKE_PAR.out.txt, ch_poplist)
-    ch_versions = ch_versions.mix(SMARTPCA.out.versions)
+    PLINK2SMARTPCA(ch_bed, ch_poplist)
 
-    FORMAT_EVEC(SMARTPCA.out.evec)
+    } else if (params.input_type == 'eigenstrat' ) {
+
+    // Read inputs (EIGENSTRAT) and define name as ID
+   ch_geno = Channel.fromFilePairs(params.inputgeno, size: -1)
+    .map {
+        meta, geno ->
+        def baseName = geno.baseName.first()
+        def dirPath = geno.parent.first()
+        def snpPath = "${dirPath}/${baseName}.snp"
+        def indPath = "${dirPath}/${baseName}.ind"
+        def fmeta = [:]
+        // Set meta.id
+        fmeta.id = baseName
+        [fmeta, geno, file(snpPath), file(indPath)]
+    }
+
+    EIGEN2SMARTPCA(ch_geno, ch_poplist)
+
+    }
 }
