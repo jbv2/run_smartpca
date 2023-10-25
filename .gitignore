@@ -39,3 +39,5 @@ testing*
 
 ._.DS_Store
 ._*
+
+run_*.sh
