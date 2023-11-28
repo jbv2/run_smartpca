@@ -1,6 +1,6 @@
 process MAKE_PAR {
     tag "$meta.id"
-    label 'process_single'
+    label 'process_medium'
 
     input:
     tuple val(meta), path(geno)
