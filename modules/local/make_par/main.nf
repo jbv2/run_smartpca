@@ -19,8 +19,8 @@ process MAKE_PAR {
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
     
-    def lsqprojectOption = task.ext.lsqproject ?: 'NO'
-    def poplistOption = lsqprojectOption == 'YES' ? "${poplistFile}" : ''
+    def lsqprojectOption = task.ext.lsqproject ?: "${params.project}"
+    def poplistOption = "${params.project}" == 'YES' ? "${poplistFile}" : ''
 
     """
     echo "genotypename: $geno" > ${prefix}.parfile.txt
